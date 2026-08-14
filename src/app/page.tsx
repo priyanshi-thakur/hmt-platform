@@ -1,117 +1,145 @@
-'use client';
-import { useState } from 'react';
-import { GoogleGenAI } from '@google/genai';
+"use client";
 
-const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || '' });
+import React, { useState } from 'react';
+import { LayoutDashboard, Trophy, Users, CheckCircle, Github, MessageSquare, X, Send, Bot, Rocket, Settings } from 'lucide-react';
 
 export default function HMTPlatform() {
-  const [activeTab, setActiveTab] = useState('team');
-  const [skillsInput, setSkillsInput] = useState('');
-  const [teamResult, setTeamResult] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const [messages, setMessages] = useState([
-    { role: 'model', text: 'Hello! I am your 24/7 AI Hackathon Mentor. How can I help your team innovate today?' }
-  ]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: 'Hi Team! I am your 24/7 AI Mentor. Need help debugging your Python code or optimizing your AR/VR logic?' }
+  ]);
 
-  const handleAiAction = async () => {
-    if (!skillsInput.trim()) return;
-    setLoading(true);
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Act as an expert HMT Multi-Agent System. Analyze these participant skills/interests and suggest a matching team strategy and role distribution: ${skillsInput}`,
-      });
-      setTeamResult(response.text || 'No response generated.');
-    } catch (error) {
-      setTeamResult('Error connecting to Gemini API. Please check your API key.');
-    }
-    setLoading(false);
-  };
-
-  const handleSendMessage = async () => {
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!chatInput.trim()) return;
-    const newMessages = [...messages, { role: 'user', text: chatInput }];
-    setMessages(newMessages);
+    
+    // Add user message
+    setMessages(prev => [...prev, { role: 'user', text: chatInput }]);
+    
+    // Simulate AI thinking and responding (You can connect your Gemini API here!)
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: 'ai', text: 'I am analyzing your request. Since we are using basic Python and Tkinter for this prototype, let me fetch the best integration approach...' }]);
+    }, 1000);
+    
     setChatInput('');
-
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: chatInput,
-      });
-      setMessages([...newMessages, { role: 'model', text: response.text || 'Thinking...' }]);
-    } catch (error) {
-      setMessages([...newMessages, { role: 'model', text: 'Network error with AI Mentor.' }]);
-    }
   };
 
   return (
-    <div className="flex h-screen bg-gray-950 text-white font-sans">
-      <div className="w-64 bg-gray-900 p-6 flex flex-col justify-between border-r border-gray-800">
-        <div>
-          <h1 className="text-xl font-extrabold text-emerald-400 mb-8 tracking-wide">HMT PLATFORM</h1>
-          <nav className="space-y-3">
-            <button onClick={() => setActiveTab('team')} className={`w-full text-left p-3 rounded-xl transition ${activeTab === 'team' ? 'bg-emerald-600 font-bold shadow-lg' : 'hover:bg-gray-800 text-gray-400'}`}>👥 Team & Profiler</button>
-            <button onClick={() => setActiveTab('ideation')} className={`w-full text-left p-3 rounded-xl transition ${activeTab === 'ideation' ? 'bg-emerald-600 font-bold shadow-lg' : 'hover:bg-gray-800 text-gray-400'}`}>💡 Ideation & Planning</button>
-            <button onClick={() => setActiveTab('chat')} className={`w-full text-left p-3 rounded-xl transition ${activeTab === 'chat' ? 'bg-emerald-600 font-bold shadow-lg' : 'hover:bg-gray-800 text-gray-400'}`}>🤖 AI Mentor Chat</button>
-          </nav>
+    <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
+      {/* SIDEBAR */}
+      <div className="w-64 bg-white border-r border-slate-200 p-5 flex flex-col">
+        <div className="flex items-center gap-2 font-black text-2xl text-purple-700 mb-10">
+          <div className="w-8 h-8 bg-purple-600 rounded-md flex items-center justify-center text-white">
+            <Trophy size={18} />
+          </div>
+          HMT
         </div>
-        <div className="text-xs text-gray-500 font-medium">Team 5Forge Ecosystem</div>
+        
+        <nav className="flex flex-col gap-2 flex-1">
+          <div className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+            <LayoutDashboard size={18} /> Home
+          </div>
+          <div className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+            <Trophy size={18} /> Hackathons
+          </div>
+          <div className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+            <Users size={18} /> My Team
+          </div>
+          <div className="flex items-center gap-3 px-3 py-2.5 bg-purple-50 text-purple-700 rounded-lg cursor-pointer font-semibold shadow-sm border border-purple-100">
+            <Bot size={18} /> AI Teammate <span className="ml-auto text-[10px] bg-purple-200 px-2 py-0.5 rounded-full">New</span>
+          </div>
+          <div className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+            <Rocket size={18} /> My Projects
+          </div>
+        </nav>
+
+        <div className="mt-auto flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+          <Settings size={18} /> Settings
+        </div>
       </div>
 
-      <div className="flex-1 p-10 overflow-y-auto bg-gray-950">
-        {activeTab === 'team' && (
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-bold mb-2 text-emerald-400">Skill Profiling & Team Builder</h2>
-            <p className="text-gray-400 mb-6">Input team member skills to run automated AI-assisted complementary matching.</p>
-            <textarea 
-              className="w-full p-4 bg-gray-900 border border-gray-800 rounded-xl text-white focus:outline-none focus:border-emerald-500 mb-4"
-              rows={4}
-              placeholder="e.g., Python, React, UI/UX Design, Machine Learning..."
-              value={skillsInput}
-              onChange={(e) => setSkillsInput(e.target.value)}
-            />
-            <button onClick={handleAiAction} className="bg-emerald-500 hover:bg-emerald-600 text-gray-950 px-6 py-3 rounded-xl font-bold transition">
-              {loading ? 'Analyzing Agents...' : 'Run Multi-Agent Match'}
-            </button>
-            {teamResult && <div className="mt-6 p-6 bg-gray-900 rounded-xl border border-gray-800 whitespace-pre-wrap text-gray-200 leading-relaxed">{teamResult}</div>}
-          </div>
-        )}
+      {/* MAIN CONTENT */}
+      <div className="flex-1 overflow-auto p-10">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-2 text-slate-900">AI Teammate</h1>
+          <p className="text-slate-500 mb-8">Connect your repository and let your AI partner analyze your AR/VR project structure.</p>
 
-        {activeTab === 'ideation' && (
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-bold mb-2 text-emerald-400">AI Ideation & Project Roadmap</h2>
-            <p className="text-gray-400 mb-6">Convert problem statements into structured milestones and development roadmaps.</p>
-            <div className="p-6 bg-gray-900 rounded-xl border border-gray-800 text-gray-400">
-              Ideation orchestration engine ready. Switch to chat or use team builder to start building!
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center">
+                <Github size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800">Connect your GitHub Repository</h2>
+                <p className="text-sm text-slate-500">Provide the link to your Python codebase</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <input 
+                type="text" 
+                defaultValue="https://github.com/team/ar-vr-innovators" 
+                className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-slate-700 font-mono text-sm"
+              />
+              <button className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                Connect
+              </button>
+            </div>
+
+            <div className="mt-6 flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-3 rounded-lg border border-emerald-100">
+              <CheckCircle size={18} />
+              <span className="text-sm font-medium">Repository connected successfully!</span>
             </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {activeTab === 'chat' && (
-          <div className="flex flex-col h-[85vh] max-w-4xl bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-2xl">
-            <h2 className="text-2xl font-bold mb-4 text-emerald-400">24/7 AI Mentor Companion</h2>
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-              {messages.map((msg, index) => (
-                <div key={index} className={`p-4 rounded-2xl max-w-[80%] leading-relaxed ${msg.role === 'user' ? 'ml-auto bg-emerald-600 text-white font-medium' : 'bg-gray-800 text-gray-200 border border-gray-700'}`}>
+      {/* FLOATING CHATBOT */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {isChatOpen ? (
+          <div className="w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 transform origin-bottom-right">
+            {/* Chat Header */}
+            <div className="bg-slate-900 text-white p-4 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Bot size={18} className="text-purple-400" />
+                <span className="font-semibold text-sm">HMT Mentor</span>
+              </div>
+              <button onClick={() => setIsChatOpen(false)} className="text-slate-300 hover:text-white transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            
+            {/* Chat Messages */}
+            <div className="h-72 p-4 overflow-y-auto flex flex-col gap-3 bg-slate-50 text-sm">
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`max-w-[85%] p-3 rounded-xl ${msg.role === 'ai' ? 'bg-white border border-slate-200 text-slate-700 self-start rounded-tl-none' : 'bg-purple-600 text-white self-end rounded-tr-none shadow-sm'}`}>
                   {msg.text}
                 </div>
               ))}
             </div>
-            <div className="flex gap-3">
+
+            {/* Chat Input */}
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-200 bg-white flex gap-2">
               <input 
                 type="text" 
-                className="flex-1 p-4 bg-gray-950 border border-gray-800 rounded-xl text-white focus:outline-none focus:border-emerald-500"
-                placeholder="Ask your AI mentor about code, architecture, or debugging..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                placeholder="Ask me anything..." 
               />
-              <button onClick={handleSendMessage} className="bg-emerald-500 hover:bg-emerald-600 text-gray-950 px-8 rounded-xl font-bold transition">Send</button>
-            </div>
+              <button type="submit" className="bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 transition-colors">
+                <Send size={16} />
+              </button>
+            </form>
           </div>
+        ) : (
+          <button 
+            onClick={() => setIsChatOpen(true)} 
+            className="bg-purple-600 text-white p-4 rounded-full shadow-xl hover:bg-purple-700 transition-transform hover:scale-110 flex items-center justify-center"
+          >
+            <MessageSquare size={24} />
+          </button>
         )}
       </div>
     </div>
